@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router';
+import {Link} from 'react-router';
 
 const nav = () => {
   return (
@@ -11,7 +11,7 @@ const nav = () => {
           <ul className='gap-5'>
             <Link className='m-1 hover:text-[#007E85]' to='/Home'>Home</Link>
             <Link className='m-1 hover:text-[#007E85]' to='/Service'>Service</Link>
-            <Link className='m-1 hover:text-[#007E85]' to='/Contact'>Contact-us</Link>
+            <Link className='m-1 hover:text-[#007E85]' to='/Contact'>Doctors Page</Link>
             <Link className='m-1 hover:text-[#007E85]' to='/Blog'>Blog</Link>
           </ul>
       </div>

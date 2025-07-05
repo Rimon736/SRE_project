@@ -1,15 +1,10 @@
 import React from 'react';
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router";
-import App from '../App';
+import {createBrowserRouter,} from "react-router";
 import HomeLayout from '../Layouts/HomeLayout';
 import Home from '../Pages/Home';
 import Service from '../Pages/Service';
-import Contact from '../Pages/Contact'; 
 import Blog from '../Pages/Blog';
-
+import DoctorsPage from "../Pages/DoctorsPage.jsx";
 
 
 const router = createBrowserRouter([
@@ -27,7 +22,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/Contact",
-        element: <Contact></Contact>
+        element: <DoctorsPage></DoctorsPage>
       },
       {
         path: "/Blog",

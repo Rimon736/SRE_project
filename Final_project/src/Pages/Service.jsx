@@ -1,9 +1,14 @@
 import React from 'react';
+import OurServices from "../components/OurServices.jsx";
+import ServiceHero from "../components/ServiceHero.jsx";
+import BookingForm from "../components/BookingForm.jsx";
 
 const Service = () => {
     return (
         <div>
-            This is the Service Page
+            <ServiceHero></ServiceHero>
+            <OurServices></OurServices>
+            <BookingForm></BookingForm>
         </div>
     );
 };
