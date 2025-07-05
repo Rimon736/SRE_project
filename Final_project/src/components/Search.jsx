@@ -55,7 +55,7 @@ const Search = () => {
             placeholder="Doctor's name"
             value={searchParams.name}
             //onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-600"
           />
         </div>
 
@@ -69,7 +69,7 @@ const Search = () => {
             name="specialty"
             value={searchParams.specialty}
             //onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-600"
           >
             {specialties.map(spec => (
               <option key={spec} value={spec === 'All Specialties' ? '' : spec}>
@@ -89,7 +89,7 @@ const Search = () => {
             name="available"
             value={searchParams.available}
             //onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-600"
           >
             {availabilityOptions.map(option => (
               <option key={option} value={option === 'Any Time' ? '' : option}>
@@ -103,7 +103,7 @@ const Search = () => {
         <div className="md:col-span-3 flex items-end">
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105"
+            className="w-full bg-violet-600 hover:bg-fuchsia-600 text-white font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105"
           >
             Search
           </button>

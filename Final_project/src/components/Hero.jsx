@@ -2,7 +2,7 @@ import React from "react";
 
 const Hero = () => {
   return (
-    <div className="max-w-11/12 mx-auto flex flex-row bg-linear-to-bl from-violet-300 to-fuchsia-300 rounded-[5px]">
+    <div className="max-w-11/12 mx-auto rounded-xl shadow-md my-2 flex flex-row justify-between items-center  p-4">
       <div className="w-2/3 flex flex-col justify-center items-start p-4 align-middle  ">
         <h1 className="font-bold text-2xl">
           Providing Quality <span className="text-fuchsia-600">Healthcare</span>{" "}
