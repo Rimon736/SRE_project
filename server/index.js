@@ -28,10 +28,32 @@ async function run() {
         await client.connect();
 
         const DoctorsCollection = client.db("SRE_DB").collection("Doctors");
+        const UserCollection =client.db("SRE_DB").collection("Users");
+
+        app.get('/UserInfo', async (req, res) => {
+            const result = await UserCollection.find().toArray();
+            res.send(result);
+        })
+        app.get('/UserInfo/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: newObjectId(id)};
+            const result = await UserCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.post('/UserInfo', async (req, res) => {
+            const newUser = req.body;
+            console.log(newUser);
+            const result = await UserCollection.insertOne(newUser);
+            res.send(result);
+
+        })
 
         app.get('/DoctorsPage', async (req, res) => {
             const result =await DoctorsCollection.find().toArray();
+            res.send(result);
         })
+
         app.get('/DoctorsPage/:id', async (req, res) => {
             const id= req.params.id;
             const query = {_id: newObjectId(id)};

@@ -5,6 +5,12 @@ import Home from '../Pages/Home';
 import Service from '../Pages/Service';
 import DoctorsPage from "../Pages/DoctorsPage.jsx";
 import DoctorsList from "../Pages/DoctorsList.jsx";
+// import * as path from "node:path";
+import Login from "../components/Login.jsx";
+import AuthLayout from "../Layouts/AuthLayout.jsx";
+import Signup from "../components/Signup.jsx";
+import UsersPage from "../Pages/UsersPage.jsx";
+import ShowUserInfo from "../components/ShowUserInfo.jsx";
 
 
 const router = createBrowserRouter([
@@ -28,9 +34,33 @@ const router = createBrowserRouter([
         path: "/DoctorsList",
         loader: () => fetch('http://localhost:3000/DoctorsPage'),
         element: <DoctorsList></DoctorsList>
+      },
+      {
+        path: "/UserInfo",
+        element: <UsersPage></UsersPage>
+      },
+      {
+        path: `/MyInfo/:id`,
+        loader: () => fetch('http://localhost:3000/UserInfo'),
+        element: <ShowUserInfo></ShowUserInfo>
       }
+
     ]
   },
+  {
+    path: 'auth',
+    element:<AuthLayout></AuthLayout>,
+    children:[
+        {
+          path:"Signup",
+          element: <Signup></Signup>
+        },
+        {
+          path: "Signin",
+          element:<Login></Login>
+        }
+    ]
+  }
 ]);
 
 export default router;

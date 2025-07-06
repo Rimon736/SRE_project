@@ -1,10 +1,27 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Award, BookOpen, Building, Clock, Languages, Mail, Phone, Shield, Star, User} from 'lucide-react';
 import {useLoaderData} from "react-router";
+import Search from '../components/Search.jsx'; // Import the Search component
+
 
 const DoctorsList = () => {
+    const Doctors = useLoaderData();
+    const [filteredDoctors, setFilteredDoctors] = useState(Doctors);
 
-    const doctors = useLoaderData();
+    const handleSearch = (searchParams) => {
+        const filtered = Doctors.filter(doctor => {
+            const nameMatch = doctor.firstName.toLowerCase().includes(searchParams.name.toLowerCase()) ||
+                doctor.lastName.toLowerCase().includes(searchParams.name.toLowerCase());
+
+            const specialtyMatch = !searchParams.specialty ||
+                doctor.primarySpecialty?.toLowerCase().includes(searchParams.specialty.toLowerCase()) ||
+                doctor.secondarySpecialty?.toLowerCase().includes(searchParams.specialty.toLowerCase());
+
+            return nameMatch && specialtyMatch;
+        });
+
+        setFilteredDoctors(filtered);
+    };
 
     const calculateYearsOfExperience = (startDate) => {
         if (!startDate) return 0;
@@ -25,6 +42,9 @@ const DoctorsList = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-violet-50 to-fuchsia-50 p-6">
             <div className="max-w-7xl mx-auto">
+                {/* Search Component */}
+                <Search onSearch={handleSearch} />
+
                 {/* Header */}
                 <div className="mb-8">
                     <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white p-6 rounded-2xl shadow-lg">
@@ -33,7 +53,7 @@ const DoctorsList = () => {
                             <div>
                                 <h1 className="text-3xl font-bold">Medical Staff Directory</h1>
                                 <p className="text-violet-100 mt-1">
-                                    {doctors.length} {doctors.length === 1 ? 'Doctor' : 'Doctors'} in our network
+                                    {Doctors.length} {Doctors.length === 1 ? 'Doctor' : 'Doctors'} in our network
                                 </p>
                             </div>
                         </div>
@@ -42,7 +62,7 @@ const DoctorsList = () => {
 
                 {/* Doctors Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {doctors.map((doctor) => (
+                    {filteredDoctors.map((doctor) => (
                         <div key={doctor._id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-violet-100 overflow-hidden">
                             {/* Card Header */}
                             <div className="bg-gradient-to-r from-violet-100 to-fuchsia-100 p-6 border-b border-violet-200">
@@ -237,7 +257,7 @@ const DoctorsList = () => {
                 </div>
 
                 {/* Empty State */}
-                {doctors.length === 0 && (
+                {filteredDoctors.length === 0 && (
                     <div className="text-center py-12">
                         <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                         <h3 className="text-xl font-medium text-gray-600 mb-2">No doctors found</h3>
