@@ -3,8 +3,8 @@ import {createBrowserRouter,} from "react-router";
 import HomeLayout from '../Layouts/HomeLayout';
 import Home from '../Pages/Home';
 import Service from '../Pages/Service';
-import Blog from '../Pages/Blog';
 import DoctorsPage from "../Pages/DoctorsPage.jsx";
+import DoctorsList from "../Pages/DoctorsList.jsx";
 
 
 const router = createBrowserRouter([
@@ -25,8 +25,9 @@ const router = createBrowserRouter([
         element: <DoctorsPage></DoctorsPage>
       },
       {
-        path: "/Blog",
-        element: <Blog></Blog>
+        path: "/DoctorsList",
+        loader: () => fetch('http://localhost:3000/DoctorsPage'),
+        element: <DoctorsList></DoctorsList>
       }
     ]
   },

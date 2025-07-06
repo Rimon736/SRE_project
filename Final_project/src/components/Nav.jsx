@@ -12,7 +12,7 @@ const nav = () => {
             <Link className='m-1 hover:text-[#007E85]' to='/Home'>Home</Link>
             <Link className='m-1 hover:text-[#007E85]' to='/Service'>Service</Link>
             <Link className='m-1 hover:text-[#007E85]' to='/Contact'>Doctors Page</Link>
-            <Link className='m-1 hover:text-[#007E85]' to='/Blog'>Blog</Link>
+            <Link className='m-1 hover:text-[#007E85]' to='/DoctorsList'>Doctors list</Link>
           </ul>
       </div>
       <div>
