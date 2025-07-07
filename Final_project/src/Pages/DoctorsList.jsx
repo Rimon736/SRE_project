@@ -1,15 +1,14 @@
 import React, {useState} from 'react';
-import {Award, BookOpen, Building, Clock, Languages, Mail, Phone, Shield, Star, User} from 'lucide-react';
+import {Award, BookOpen, Building, Clock, Download, Languages, Mail, Phone, Shield, Star, User} from 'lucide-react';
 import {useLoaderData} from "react-router";
 import Search from '../components/Search.jsx'; // Import the Search component
-
 
 const DoctorsList = () => {
     const Doctors = useLoaderData();
     const [filteredDoctors, setFilteredDoctors] = useState(Doctors);
 
     const handleSearch = (searchParams) => {
-        const filtered = Doctors.filter(doctor => {
+        const filtered = {Doctors}.filter(doctor => {
             const nameMatch = doctor.firstName.toLowerCase().includes(searchParams.name.toLowerCase()) ||
                 doctor.lastName.toLowerCase().includes(searchParams.name.toLowerCase());
 
@@ -37,6 +36,256 @@ const DoctorsList = () => {
             month: 'short',
             day: 'numeric'
         });
+    };
+
+    const generateBillNumber = () => {
+        return 'BILL-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    };
+
+    const getConsultationFee = (specialty) => {
+        const fees = {
+            'Cardiology': 150,
+            'Neurology': 180,
+            'Orthopedics': 130,
+            'Dermatology': 120,
+            'Psychiatry': 140,
+            'Pediatrics': 100,
+            'Oncology': 200,
+            'General Practice': 80
+        };
+        return fees[specialty] || 100;
+    };
+
+    const createPDFBill = (doctor) => {
+        const billNumber = generateBillNumber();
+        const consultationFee = getConsultationFee(doctor.primarySpecialty);
+        const tax = Math.round(consultationFee * 0.1);
+        const total = consultationFee + tax;
+        const currentDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Create HTML content for the bill
+        const billHTML = `
+            <!DOCTYPE html>
+            <html lang="en-US">
+            <head>
+                <meta charset="UTF-8">
+                <title>Medical Bill - ${billNumber}</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        max-width: 800px;
+                        margin: 0 auto;
+                        padding: 40px;
+                        line-height: 1.6;
+                        color: #333;
+                    }
+                    .header {
+                        text-align: center;
+                        margin-bottom: 40px;
+                        border-bottom: 3px solid #8B5CF6;
+                        padding-bottom: 20px;
+                    }
+                    .logo {
+                        font-size: 28px;
+                        font-weight: bold;
+                        color: #8B5CF6;
+                        margin-bottom: 10px;
+                    }
+                    .bill-info {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 30px;
+                        background: #F8FAFC;
+                        padding: 20px;
+                        border-radius: 8px;
+                    }
+                    .bill-to, .bill-from {
+                        flex: 1;
+                    }
+                    .bill-to {
+                        margin-right: 20px;
+                    }
+                    .section-title {
+                        font-weight: bold;
+                        color: #8B5CF6;
+                        margin-bottom: 10px;
+                        font-size: 14px;
+                        text-transform: uppercase;
+                    }
+                    .services-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 30px 0;
+                    }
+                    .services-table th,
+                    .services-table td {
+                        border: 1px solid #E5E7EB;
+                        padding: 12px;
+                        text-align: left;
+                    }
+                    .services-table th {
+                        background: #8B5CF6;
+                        color: white;
+                        font-weight: bold;
+                    }
+                    .services-table tr:nth-child(even) {
+                        background: #F9FAFB;
+                    }
+                    .total-section {
+                        text-align: right;
+                        margin-top: 30px;
+                    }
+                    .total-row {
+                        margin: 5px 0;
+                    }
+                    .total-final {
+                        font-size: 18px;
+                        font-weight: bold;
+                        color: #8B5CF6;
+                        border-top: 2px solid #8B5CF6;
+                        padding-top: 10px;
+                        margin-top: 10px;
+                    }
+                    .footer {
+                        margin-top: 40px;
+                        text-align: center;
+                        font-size: 12px;
+                        color: #6B7280;
+                        border-top: 1px solid #E5E7EB;
+                        padding-top: 20px;
+                    }
+                    .payment-terms {
+                        background: #FEF3C7;
+                        padding: 15px;
+                        border-radius: 5px;
+                        margin: 20px 0;
+                        border-left: 4px solid #F59E0B;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div class="logo">🏥 MediCare Center</div>
+                    <p>Professional Medical Services</p>
+                    <p>123 Healthcare Boulevard, Medical District, MD 12345</p>
+                    <p>Phone: (555) 123-4567 | Email: billing@medicare.com</p>
+                </div>
+
+                <div class="bill-info">
+                    <div class="bill-to">
+                        <div class="section-title">Bill To:</div>
+                        <strong>Patient Name</strong><br>
+                        Patient Address<br>
+                        City, State ZIP<br>
+                        Phone: (555) 000-0000
+                    </div>
+                    <div class="bill-from">
+                        <div class="section-title">Bill Details:</div>
+                        <strong>Bill Number:</strong> ${billNumber}<br>
+                        <strong>Date:</strong> ${currentDate}<br>
+                        <strong>Due Date:</strong> ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US')}<br>
+                        <strong>Payment Terms:</strong> Net 30
+                    </div>
+                </div>
+
+                <div class="section-title">Doctor Information:</div>
+                <table class="services-table">
+                    <tr>
+                        <th>Doctor</th>
+                        <th>Specialty</th>
+                        <th>Hospital</th>
+                        <th>License</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Dr. ${doctor.firstName} ${doctor.lastName}</strong></td>
+                        <td>${doctor.primarySpecialty || 'General Practice'}</td>
+                        <td>${doctor.currentHospital || 'MediCare Center'}</td>
+                        <td>${doctor.medicalLicenseNumber || 'N/A'}</td>
+                    </tr>
+                </table>
+
+                <div class="section-title">Services Provided:</div>
+                <table class="services-table">
+                    <thead>
+                        <tr>
+                            <th>Service Description</th>
+                            <th>Date</th>
+                            <th>Quantity</th>
+                            <th>Rate</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Medical Consultation - ${doctor.primarySpecialty || 'General Practice'}</td>
+                            <td>${currentDate}</td>
+                            <td>1</td>
+                            <td>$${consultationFee}</td>
+                            <td>$${consultationFee}</td>
+                        </tr>
+                        ${doctor.secondarySpecialty ? `
+                        <tr>
+                            <td>Additional Consultation - ${doctor.secondarySpecialty}</td>
+                            <td>${currentDate}</td>
+                            <td>1</td>
+                            <td>$50</td>
+                            <td>$50</td>
+                        </tr>
+                        ` : ''}
+                    </tbody>
+                </table>
+
+                <div class="total-section">
+                    <div class="total-row">
+                        <strong>Subtotal: $${doctor.secondarySpecialty ? consultationFee + 50 : consultationFee}</strong>
+                    </div>
+                    <div class="total-row">
+                        <strong>Tax (10%): $${Math.round((doctor.secondarySpecialty ? consultationFee + 50 : consultationFee) * 0.1)}</strong>
+                    </div>
+                    <div class="total-final">
+                        <strong>Total Amount: $${doctor.secondarySpecialty ? consultationFee + 50 + Math.round((consultationFee + 50) * 0.1) : total}</strong>
+                    </div>
+                </div>
+
+                <div class="payment-terms">
+                    <strong>Payment Terms & Conditions:</strong><br>
+                    • Payment is due within 30 days of bill date<br>
+                    • Late payments may incur additional charges<br>
+                    • For billing inquiries, contact our billing department<br>
+                    • Insurance claims processing may take 15-30 business days
+                </div>
+
+                <div class="footer">
+                    <p>Thank you for choosing MediCare Center for your healthcare needs.</p>
+                    <p>This is a computer-generated bill and does not require a signature.</p>
+                    <p>For questions regarding this bill, please contact our billing department at (555) 123-4567</p>
+                </div>
+            </body>
+            </html>
+        `;
+
+        // Create and download PDF
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(billHTML);
+        printWindow.document.close();
+
+        // Wait for content to load, then trigger print
+        printWindow.onload = function() {
+            printWindow.print();
+            printWindow.close();
+        };
+    };
+
+    const handleRequestAppointment = (doctor) => {
+        // Create and download the bill
+        createPDFBill(doctor);
+
+        // Optional: Show confirmation message
+        alert(`Appointment requested with Dr. ${doctor.firstName} ${doctor.lastName}. Bill has been generated and will open in a new window for printing/saving.`);
     };
 
     return (
@@ -247,8 +496,12 @@ const DoctorsList = () => {
                                             </>
                                         )}
                                     </div>
-                                    <button className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-violet-700 hover:to-fuchsia-700 transition-all duration-200">
-                                        Request Appointment
+                                    <button
+                                        onClick={() => handleRequestAppointment(doctor)}
+                                        className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-violet-700 hover:to-fuchsia-700 transition-all duration-200 flex items-center space-x-2"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                        <span>Request Appointment</span>
                                     </button>
                                 </div>
                             </div>

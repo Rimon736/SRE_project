@@ -1,7 +1,12 @@
-import React, {useState} from 'react';
+import React, {use, useEffect, useState} from 'react';
 import {Award, BookOpen, Building, Shield, User} from 'lucide-react';
+import {AuthContext} from "../Context/AuthContext.jsx";
 
 export default function DoctorsPage() {
+    const {user} = use(AuthContext);
+    const [loading, setLoading] = useState(true);
+    const [updating, setUpdating] = useState(false);
+
     const [formData, setFormData] = useState({
         // Personal Information
         firstName: '',
@@ -48,6 +53,47 @@ export default function DoctorsPage() {
         awards: ''
     });
 
+    // Fetch existing doctor data when component mounts
+    useEffect(() => {
+        const fetchDoctorData = async () => {
+            if (!user?.email) return;
+
+            try {
+                const response = await fetch(`http://localhost:3000/DoctorsPage/email/${user.email}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data) {
+                        setFormData(prev => ({
+                            ...prev,
+                            ...data,
+                            email: user.email // Always use email from auth context
+                        }));
+                    } else {
+                        // If no data exists, just set the email
+                        setFormData(prev => ({
+                            ...prev,
+                            email: user.email
+                        }));
+                    }
+                } else if (response.status === 404) {
+                    // Doctor not found, set email for new entry
+                    setFormData(prev => ({
+                        ...prev,
+                        email: user.email
+                    }));
+                } else {
+                    console.error('Error fetching doctor data:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error fetching doctor data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDoctorData();
+    }, [user?.email]);
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -56,37 +102,51 @@ export default function DoctorsPage() {
         }));
     };
 
-    // Fixed handleSubmit function
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setUpdating(true);
 
-        // Since you're using controlled inputs, just use the formData state
-        // const doctorsInfo = Object.fromEntries(formData.entries())
-        const doctorsInfo = formData;
-        console.log('Form submitted:', doctorsInfo);
-        alert('Doctor credentials updated successfully!');
+        try {
+            const doctorsInfo = {
+                ...formData,
+                email: user.email // Ensure email is always from auth context
+            };
+            console.log('Doctor credentials:', doctorsInfo);
+            const response = await fetch(`http://localhost:3000/DoctorsPage/email/${user.email}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(doctorsInfo)
+            });
 
-        // If you really need FormData object, create it manually:
-        // const formDataObj = new FormData();
-        // Object.entries(formData).forEach(([key, value]) => {
-        //     formDataObj.append(key, value);
-        // });
-
-        fetch('http://localhost:3000/DoctorsPage',{
-            method: 'POST',
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: JSON.stringify(doctorsInfo)
-        })
-            .then(res => res.json())
-            .then(data => {
-               if(data.insertedId){
-                   console.log(data);
-               }
-            })
-
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Doctor credentials updated successfully:', data);
+                alert('Doctor credentials updated successfully!');
+            } else {
+                const errorData = await response.json();
+                console.error('Error updating doctor credentials:', errorData);
+                alert('Error updating doctor credentials. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error updating doctor credentials:', error);
+            alert('Error updating doctor credentials. Please try again.');
+        } finally {
+            setUpdating(false);
+        }
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-violet-50 to-fuchsia-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading doctor credentials...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-violet-50 to-fuchsia-50 p-6">
@@ -103,7 +163,7 @@ export default function DoctorsPage() {
                         </div>
                     </div>
 
-                    {/* Wrap everything in a form element */}
+                    {/* Form */}
                     <form onSubmit={handleSubmit}>
                         <div className="p-8 space-y-8">
                             {/* Personal Information */}
@@ -143,10 +203,10 @@ export default function DoctorsPage() {
                                         <input
                                             type="email"
                                             name="email"
-                                            value={formData.email}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
-                                            placeholder="doctor@example.com"
+                                            value={user.email}
+                                            readOnly={true}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                                            placeholder={user.email}
                                         />
                                     </div>
 
@@ -541,10 +601,15 @@ export default function DoctorsPage() {
                             <div className="flex justify-end pt-6">
                                 <button
                                     type="submit"
-                                    className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-8 py-4 rounded-lg font-semibold hover:from-violet-700 hover:to-fuchsia-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
+                                    disabled={updating}
+                                    className={`${
+                                        updating
+                                            ? 'bg-gray-400 cursor-not-allowed'
+                                            : 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 transform hover:scale-105'
+                                    } text-white px-8 py-4 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2`}
                                 >
                                     <Shield className="w-5 h-5" />
-                                    <span>Update Credentials</span>
+                                    <span>{updating ? 'Updating...' : 'Update Credentials'}</span>
                                 </button>
                             </div>
                         </div>

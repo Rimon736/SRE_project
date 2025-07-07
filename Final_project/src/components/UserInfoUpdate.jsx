@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Calendar, HeartPulse, Home, Mail, Phone, Shield, User} from 'lucide-react';
 
-export default function userInfoUpdate() {
+export default function UserInfoUpdate() {
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',

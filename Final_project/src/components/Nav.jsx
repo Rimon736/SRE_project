@@ -11,7 +11,7 @@ const nav = () => {
           <ul className='gap-5'>
             <Link className='m-1 hover:text-[#007E85]' to='/Home'>Home</Link>
             <Link className='m-1 hover:text-[#007E85]' to='/Service'>Service</Link>
-            <Link className='m-1 hover:text-[#007E85]' to='/Contact'>Doctors Page</Link>
+            <Link className='m-1 hover:text-[#007E85]' to='/DoctorsPage'>Doctors Page</Link>
             <Link className='m-1 hover:text-[#007E85]' to='/DoctorsList'>Doctors list</Link>
               <Link className='m-1 hover:text-[#007E85]' to='/UserInfo'>My Info</Link>
           </ul>

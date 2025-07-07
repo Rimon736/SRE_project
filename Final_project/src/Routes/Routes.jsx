@@ -11,6 +11,7 @@ import AuthLayout from "../Layouts/AuthLayout.jsx";
 import Signup from "../components/Signup.jsx";
 import UsersPage from "../Pages/UsersPage.jsx";
 import ShowUserInfo from "../components/ShowUserInfo.jsx";
+import PrivateRoutes from "../Providers/PrivateRoutes.jsx";
 
 
 const router = createBrowserRouter([
@@ -27,8 +28,10 @@ const router = createBrowserRouter([
         element: <Service></Service>
       },
       {
-        path: "/Contact",
-        element: <DoctorsPage></DoctorsPage>
+        path: "/DoctorsPage",
+        element: <PrivateRoutes>
+          <DoctorsPage></DoctorsPage>
+        </PrivateRoutes>
       },
       {
         path: "/DoctorsList",
@@ -51,14 +54,14 @@ const router = createBrowserRouter([
     path: 'auth',
     element:<AuthLayout></AuthLayout>,
     children:[
-        {
-          path:"Signup",
-          element: <Signup></Signup>
-        },
-        {
-          path: "Signin",
-          element:<Login></Login>
-        }
+      {
+        path:"Signup",
+        element: <Signup></Signup>
+      },
+      {
+        path:"Login",
+        element:<Login></Login>
+      }
     ]
   }
 ]);

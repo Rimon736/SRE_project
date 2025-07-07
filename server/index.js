@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion , ObjectId} = require('mongodb');
 require('dotenv').config()
 
 app.use(cors());
@@ -36,10 +36,96 @@ async function run() {
         })
         app.get('/UserInfo/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: newObjectId(id)};
+            const query = {_id: new ObjectId(id)};
             const result = await UserCollection.findOne(query);
             res.send(result);
         })
+
+        app.put('/DoctorsPage/email/:email', async (req, res) => {
+            try {
+                const email = req.params.email;
+                const updates = req.body;
+
+                if (!email) {
+                    return res.status(400).json({ error: 'Email is required' });
+                }
+
+                if (!updates || Object.keys(updates).length === 0) {
+                    return res.status(400).json({ error: 'Update data is required' });
+                }
+
+
+
+                // Ensure email in data matches the parameter
+                updates.email = email;
+                updates.updatedAt = new Date();
+
+                // Use updateOne with $set for partial updates
+                const result = await DoctorsCollection.updateOne(
+                    { email: email },
+                    {
+                        $set: updates,
+                        $setOnInsert: { createdAt: new Date() }
+                    },
+                    { upsert: true }
+                );
+
+                if (result.upsertedCount > 0) {
+                    res.status(201).json({
+                        message: 'Doctor profile created successfully',
+                        upsertedId: result.upsertedId,
+                        email: email
+                    });
+                } else if (result.modifiedCount > 0) {
+                    res.status(200).json({
+                        message: 'Doctor profile updated successfully',
+                        matchedCount: result.matchedCount,
+                        modifiedCount: result.modifiedCount,
+                        email: email
+                    });
+                } else {
+                    res.status(200).json({
+                        message: 'No changes made to doctor profile',
+                        email: email
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error updating doctor data:', error);
+                res.status(500).json({ error: 'Internal server error' });
+            } finally {
+                await client.close();
+            }
+        });
+
+        app.get('/DoctorsPage/email/:email', async (req, res) => {
+            try {
+                const email = req.params.email;
+
+                if (!email) {
+                    return res.status(400).json({ error: 'Email is required' });
+                }
+
+                // Find doctor by email
+                const doctor = await DoctorsCollection.findOne({ email: email });
+
+                if (!doctor) {
+                    return res.status(404).json({ error: 'Doctor not found' });
+                }
+
+                // Remove MongoDB _id from response (optional)
+                const { _id, ...doctorData } = doctor;
+
+                res.status(200).json(doctorData);
+
+            } catch (error) {
+                console.error('Error fetching doctor data:', error);
+                res.status(500).json({ error: 'Internal server error' });
+            } finally {
+                await client.close();
+            }
+        });
+
 
         app.post('/UserInfo', async (req, res) => {
             const newUser = req.body;
@@ -54,9 +140,9 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/DoctorsPage/:id', async (req, res) => {
+        app.get('/DoctorsPage/id/:id', async (req, res) => {
             const id= req.params.id;
-            const query = {_id: newObjectId(id)};
+            const query = {_id: new ObjectId(id)};
             const result = await DoctorsCollection.findOne(query);
             res.send(result);
 
