@@ -17,7 +17,7 @@ const nav = () => {
           </ul>
       </div>
       <div>
-        <Link to='auth/Signin' className='m-1.5'><button className='hover:bg-[#007E85] bg-[#6EAB36] text-white p-2 rounded-[10px]'>Sign-up</button></Link>
+        <Link to='auth/Signup' className='m-1.5'><button className='hover:bg-[#007E85] bg-[#6EAB36] text-white p-2 rounded-[10px]'>Sign-up</button></Link>
         <Link to='auth/Login' className='m-1.5'><button className='hover:bg-[#007E85] bg-[#6EAB36] text-white p-2 rounded-[10px]'>Login</button></Link>
       </div>
     </div>

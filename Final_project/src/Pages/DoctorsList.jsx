@@ -1,25 +1,98 @@
-import React, {useState} from 'react';
-import {Award, BookOpen, Building, Clock, Download, Languages, Mail, Phone, Shield, Star, User} from 'lucide-react';
+import React, {useEffect, useState} from 'react';
+import {
+    Award,
+    BookOpen,
+    Building,
+    Clock,
+    Filter,
+    Languages,
+    Mail,
+    Phone,
+    Search as SearchIcon,
+    Shield,
+    Star,
+    User
+} from 'lucide-react';
 import {useLoaderData} from "react-router";
 import Search from '../components/Search.jsx'; // Import the Search component
 
 const DoctorsList = () => {
     const Doctors = useLoaderData();
     const [filteredDoctors, setFilteredDoctors] = useState(Doctors);
+    const [selectedSpecialty, setSelectedSpecialty] = useState('');
+    const [uniqueSpecialties, setUniqueSpecialties] = useState([]);
+    const [searchName, setSearchName] = useState('');
+
+    // Extract unique primary specialties on component mount
+    useEffect(() => {
+        const specialties = [...new Set(Doctors.map(doctor => doctor.primarySpecialty).filter(Boolean))];
+        setUniqueSpecialties(specialties.sort());
+    }, [Doctors]);
 
     const handleSearch = (searchParams) => {
-        const filtered = {Doctors}.filter(doctor => {
-            const nameMatch = doctor.firstName.toLowerCase().includes(searchParams.name.toLowerCase()) ||
-                doctor.lastName.toLowerCase().includes(searchParams.name.toLowerCase());
+        const filtered = Doctors.filter(doctor => {
+            // Enhanced name search - search in first name, last name, and full name
+            const fullName = `${doctor.firstName} ${doctor.lastName}`.toLowerCase();
+            const searchName = searchParams.name.toLowerCase().trim();
+
+            const nameMatch = !searchName ||
+                doctor.firstName.toLowerCase().includes(searchName) ||
+                doctor.lastName.toLowerCase().includes(searchName) ||
+                fullName.includes(searchName);
 
             const specialtyMatch = !searchParams.specialty ||
                 doctor.primarySpecialty?.toLowerCase().includes(searchParams.specialty.toLowerCase()) ||
                 doctor.secondarySpecialty?.toLowerCase().includes(searchParams.specialty.toLowerCase());
 
-            return nameMatch && specialtyMatch;
+            // Add primary specialty filter
+            const primarySpecialtyMatch = !selectedSpecialty ||
+                doctor.primarySpecialty === selectedSpecialty;
+
+            return nameMatch && specialtyMatch && primarySpecialtyMatch;
         });
 
         setFilteredDoctors(filtered);
+    };
+
+    // Handle primary specialty filter change
+    const handleSpecialtyFilter = (specialty) => {
+        setSelectedSpecialty(specialty);
+
+        // When filtering by specialty, also consider any existing search terms
+        const filtered = Doctors.filter(doctor => {
+            const primarySpecialtyMatch = !specialty || doctor.primarySpecialty === specialty;
+            return primarySpecialtyMatch;
+        });
+
+        setFilteredDoctors(filtered);
+    };
+
+    // Enhanced search function for name-only searches
+    const handleNameSearch = (searchTerm) => {
+        const filtered = Doctors.filter(doctor => {
+            const fullName = `${doctor.firstName} ${doctor.lastName}`.toLowerCase();
+            const searchName = searchTerm.toLowerCase().trim();
+
+            const nameMatch = !searchName ||
+                doctor.firstName.toLowerCase().includes(searchName) ||
+                doctor.lastName.toLowerCase().includes(searchName) ||
+                fullName.includes(searchName);
+
+            // Apply specialty filter if one is selected
+            const primarySpecialtyMatch = !selectedSpecialty ||
+                doctor.primarySpecialty === selectedSpecialty;
+
+            return nameMatch && primarySpecialtyMatch;
+        });
+
+        setFilteredDoctors(filtered);
+    };
+
+    // Clear all filters
+    const clearFilters = () => {
+        setSelectedSpecialty('');
+        setSearchName('');
+        setFilteredDoctors(Doctors);
     };
 
     const calculateYearsOfExperience = (startDate) => {
@@ -38,261 +111,108 @@ const DoctorsList = () => {
         });
     };
 
-    const generateBillNumber = () => {
-        return 'BILL-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
-    };
-
-    const getConsultationFee = (specialty) => {
-        const fees = {
-            'Cardiology': 150,
-            'Neurology': 180,
-            'Orthopedics': 130,
-            'Dermatology': 120,
-            'Psychiatry': 140,
-            'Pediatrics': 100,
-            'Oncology': 200,
-            'General Practice': 80
-        };
-        return fees[specialty] || 100;
-    };
-
-    const createPDFBill = (doctor) => {
-        const billNumber = generateBillNumber();
-        const consultationFee = getConsultationFee(doctor.primarySpecialty);
-        const tax = Math.round(consultationFee * 0.1);
-        const total = consultationFee + tax;
-        const currentDate = new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-
-        // Create HTML content for the bill
-        const billHTML = `
-            <!DOCTYPE html>
-            <html lang="en-US">
-            <head>
-                <meta charset="UTF-8">
-                <title>Medical Bill - ${billNumber}</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        max-width: 800px;
-                        margin: 0 auto;
-                        padding: 40px;
-                        line-height: 1.6;
-                        color: #333;
-                    }
-                    .header {
-                        text-align: center;
-                        margin-bottom: 40px;
-                        border-bottom: 3px solid #8B5CF6;
-                        padding-bottom: 20px;
-                    }
-                    .logo {
-                        font-size: 28px;
-                        font-weight: bold;
-                        color: #8B5CF6;
-                        margin-bottom: 10px;
-                    }
-                    .bill-info {
-                        display: flex;
-                        justify-content: space-between;
-                        margin-bottom: 30px;
-                        background: #F8FAFC;
-                        padding: 20px;
-                        border-radius: 8px;
-                    }
-                    .bill-to, .bill-from {
-                        flex: 1;
-                    }
-                    .bill-to {
-                        margin-right: 20px;
-                    }
-                    .section-title {
-                        font-weight: bold;
-                        color: #8B5CF6;
-                        margin-bottom: 10px;
-                        font-size: 14px;
-                        text-transform: uppercase;
-                    }
-                    .services-table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin: 30px 0;
-                    }
-                    .services-table th,
-                    .services-table td {
-                        border: 1px solid #E5E7EB;
-                        padding: 12px;
-                        text-align: left;
-                    }
-                    .services-table th {
-                        background: #8B5CF6;
-                        color: white;
-                        font-weight: bold;
-                    }
-                    .services-table tr:nth-child(even) {
-                        background: #F9FAFB;
-                    }
-                    .total-section {
-                        text-align: right;
-                        margin-top: 30px;
-                    }
-                    .total-row {
-                        margin: 5px 0;
-                    }
-                    .total-final {
-                        font-size: 18px;
-                        font-weight: bold;
-                        color: #8B5CF6;
-                        border-top: 2px solid #8B5CF6;
-                        padding-top: 10px;
-                        margin-top: 10px;
-                    }
-                    .footer {
-                        margin-top: 40px;
-                        text-align: center;
-                        font-size: 12px;
-                        color: #6B7280;
-                        border-top: 1px solid #E5E7EB;
-                        padding-top: 20px;
-                    }
-                    .payment-terms {
-                        background: #FEF3C7;
-                        padding: 15px;
-                        border-radius: 5px;
-                        margin: 20px 0;
-                        border-left: 4px solid #F59E0B;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <div class="logo">🏥 MediCare Center</div>
-                    <p>Professional Medical Services</p>
-                    <p>123 Healthcare Boulevard, Medical District, MD 12345</p>
-                    <p>Phone: (555) 123-4567 | Email: billing@medicare.com</p>
-                </div>
-
-                <div class="bill-info">
-                    <div class="bill-to">
-                        <div class="section-title">Bill To:</div>
-                        <strong>Patient Name</strong><br>
-                        Patient Address<br>
-                        City, State ZIP<br>
-                        Phone: (555) 000-0000
-                    </div>
-                    <div class="bill-from">
-                        <div class="section-title">Bill Details:</div>
-                        <strong>Bill Number:</strong> ${billNumber}<br>
-                        <strong>Date:</strong> ${currentDate}<br>
-                        <strong>Due Date:</strong> ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US')}<br>
-                        <strong>Payment Terms:</strong> Net 30
-                    </div>
-                </div>
-
-                <div class="section-title">Doctor Information:</div>
-                <table class="services-table">
-                    <tr>
-                        <th>Doctor</th>
-                        <th>Specialty</th>
-                        <th>Hospital</th>
-                        <th>License</th>
-                    </tr>
-                    <tr>
-                        <td><strong>Dr. ${doctor.firstName} ${doctor.lastName}</strong></td>
-                        <td>${doctor.primarySpecialty || 'General Practice'}</td>
-                        <td>${doctor.currentHospital || 'MediCare Center'}</td>
-                        <td>${doctor.medicalLicenseNumber || 'N/A'}</td>
-                    </tr>
-                </table>
-
-                <div class="section-title">Services Provided:</div>
-                <table class="services-table">
-                    <thead>
-                        <tr>
-                            <th>Service Description</th>
-                            <th>Date</th>
-                            <th>Quantity</th>
-                            <th>Rate</th>
-                            <th>Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Medical Consultation - ${doctor.primarySpecialty || 'General Practice'}</td>
-                            <td>${currentDate}</td>
-                            <td>1</td>
-                            <td>$${consultationFee}</td>
-                            <td>$${consultationFee}</td>
-                        </tr>
-                        ${doctor.secondarySpecialty ? `
-                        <tr>
-                            <td>Additional Consultation - ${doctor.secondarySpecialty}</td>
-                            <td>${currentDate}</td>
-                            <td>1</td>
-                            <td>$50</td>
-                            <td>$50</td>
-                        </tr>
-                        ` : ''}
-                    </tbody>
-                </table>
-
-                <div class="total-section">
-                    <div class="total-row">
-                        <strong>Subtotal: $${doctor.secondarySpecialty ? consultationFee + 50 : consultationFee}</strong>
-                    </div>
-                    <div class="total-row">
-                        <strong>Tax (10%): $${Math.round((doctor.secondarySpecialty ? consultationFee + 50 : consultationFee) * 0.1)}</strong>
-                    </div>
-                    <div class="total-final">
-                        <strong>Total Amount: $${doctor.secondarySpecialty ? consultationFee + 50 + Math.round((consultationFee + 50) * 0.1) : total}</strong>
-                    </div>
-                </div>
-
-                <div class="payment-terms">
-                    <strong>Payment Terms & Conditions:</strong><br>
-                    • Payment is due within 30 days of bill date<br>
-                    • Late payments may incur additional charges<br>
-                    • For billing inquiries, contact our billing department<br>
-                    • Insurance claims processing may take 15-30 business days
-                </div>
-
-                <div class="footer">
-                    <p>Thank you for choosing MediCare Center for your healthcare needs.</p>
-                    <p>This is a computer-generated bill and does not require a signature.</p>
-                    <p>For questions regarding this bill, please contact our billing department at (555) 123-4567</p>
-                </div>
-            </body>
-            </html>
-        `;
-
-        // Create and download PDF
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(billHTML);
-        printWindow.document.close();
-
-        // Wait for content to load, then trigger print
-        printWindow.onload = function() {
-            printWindow.print();
-            printWindow.close();
-        };
-    };
-
-    const handleRequestAppointment = (doctor) => {
-        // Create and download the bill
-        createPDFBill(doctor);
-
-        // Optional: Show confirmation message
-        alert(`Appointment requested with Dr. ${doctor.firstName} ${doctor.lastName}. Bill has been generated and will open in a new window for printing/saving.`);
-    };
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-violet-50 to-fuchsia-50 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Search Component */}
                 <Search onSearch={handleSearch} />
+
+                {/* Name Search Section */}
+                <div className="mb-6">
+                    <div className="bg-white rounded-2xl shadow-lg border border-violet-100 p-6">
+                        <div className="flex items-center space-x-3 mb-4">
+                            <SearchIcon className="w-5 h-5 text-violet-600" />
+                            <h2 className="text-lg font-semibold text-gray-800">Search by Doctor Name</h2>
+                        </div>
+
+                        <div className="relative">
+                            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Search by first name, last name, or full name..."
+                                value={searchName}
+                                onChange={(e) => {
+                                    setSearchName(e.target.value);
+                                    handleNameSearch(e.target.value);
+                                }}
+                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all duration-200"
+                            />
+                            {searchName && (
+                                <button
+                                    onClick={() => {
+                                        setSearchName('');
+                                        handleNameSearch('');
+                                    }}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                    ×
+                                </button>
+                            )}
+                        </div>
+
+                        {searchName && (
+                            <div className="mt-3 text-sm text-gray-600">
+                                Found {filteredDoctors.length} doctor{filteredDoctors.length !== 1 ? 's' : ''} matching "{searchName}"
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Primary Specialty Filter */}
+                <div className="mb-6">
+                    <div className="bg-white rounded-2xl shadow-lg border border-violet-100 p-6">
+                        <div className="flex items-center space-x-3 mb-4">
+                            <Filter className="w-5 h-5 text-violet-600" />
+                            <h2 className="text-lg font-semibold text-gray-800">Filter by Primary Specialty</h2>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                onClick={() => handleSpecialtyFilter('')}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                                    selectedSpecialty === ''
+                                        ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                All Specialties ({Doctors.length})
+                            </button>
+
+                            {uniqueSpecialties.map((specialty) => {
+                                const count = Doctors.filter(doctor => doctor.primarySpecialty === specialty).length;
+                                return (
+                                    <button
+                                        key={specialty}
+                                        onClick={() => handleSpecialtyFilter(specialty)}
+                                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                                            selectedSpecialty === specialty
+                                                ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        {specialty} ({count})
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {(selectedSpecialty || searchName) && (
+                            <div className="mt-4 flex items-center justify-between">
+                                <p className="text-sm text-gray-600">
+                                    Showing {filteredDoctors.length} doctor{filteredDoctors.length !== 1 ? 's' : ''}
+                                    {selectedSpecialty && ` in ${selectedSpecialty}`}
+                                    {searchName && ` matching "${searchName}"`}
+                                </p>
+                                <button
+                                    onClick={clearFilters}
+                                    className="text-sm text-violet-600 hover:text-violet-700 font-medium"
+                                >
+                                    Clear All Filters
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
 
                 {/* Header */}
                 <div className="mb-8">
@@ -302,7 +222,13 @@ const DoctorsList = () => {
                             <div>
                                 <h1 className="text-3xl font-bold">Medical Staff Directory</h1>
                                 <p className="text-violet-100 mt-1">
-                                    {Doctors.length} {Doctors.length === 1 ? 'Doctor' : 'Doctors'} in our network
+                                    {filteredDoctors.length} of {Doctors.length} {filteredDoctors.length === 1 ? 'Doctor' : 'Doctors'}
+                                    {selectedSpecialty && (
+                                        <span> in {selectedSpecialty}</span>
+                                    )}
+                                    {searchName && (
+                                        <span> matching "{searchName}"</span>
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -496,12 +422,8 @@ const DoctorsList = () => {
                                             </>
                                         )}
                                     </div>
-                                    <button
-                                        onClick={() => handleRequestAppointment(doctor)}
-                                        className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-violet-700 hover:to-fuchsia-700 transition-all duration-200 flex items-center space-x-2"
-                                    >
-                                        <Download className="w-4 h-4" />
-                                        <span>Request Appointment</span>
+                                    <button className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-violet-700 hover:to-fuchsia-700 transition-all duration-200">
+                                        Request Appointment
                                     </button>
                                 </div>
                             </div>
@@ -514,7 +436,12 @@ const DoctorsList = () => {
                     <div className="text-center py-12">
                         <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                         <h3 className="text-xl font-medium text-gray-600 mb-2">No doctors found</h3>
-                        <p className="text-gray-500">There are no doctors in the database yet.</p>
+                        <p className="text-gray-500">
+                            {selectedSpecialty || searchName
+                                ? `No doctors found${selectedSpecialty ? ` in ${selectedSpecialty}` : ''}${searchName ? ` matching "${searchName}"` : ''}. Try adjusting your search criteria.`
+                                : 'There are no doctors in the database yet.'
+                            }
+                        </p>
                     </div>
                 )}
             </div>
